@@ -186,6 +186,7 @@ UPROGS=\
 	$U/_sleep\
 	$U/_pingpong\
 	$U/_primes\
+	$U/_find\
 	$U/_stressfs\
 	$U/_usertests\
 	$U/_grind\
