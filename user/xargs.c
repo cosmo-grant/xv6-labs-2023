@@ -29,7 +29,7 @@
  *
  */
 
-char **split_line(char *line) {
+char **split(char *line) {
   // TODO: what about trailing newline?
   int line_idx, words_idx;
   char *word_start;
@@ -60,11 +60,32 @@ char **split_line(char *line) {
 //   }
 // }
 
+void readline(int fd, char *line) {
+  int count = 0;
+  int num_read;
+
+  while (1) {
+    num_read = read(fd, line + count, 1);
+    if (num_read == 0) {
+      break;
+    }
+    if (line[count] == '\n') {
+      line[count] = '\0';
+      break;
+    }
+    count++;
+  }
+
+}
 int main(int argc, char *argv[]) {
   char **words;
-  char line[] = "foo bar\n";
-  words = split_line(line);
-  printf("%s", words[0]);
+  char input_line[100]; // TODO: what should max size be?
+  // char prefix = argv[1];
+  // char input_line[] = "foo bar\n";
+  
+  readline(0, input_line);
+  words = split(input_line);
+  printf("%s\n", words[0]);
 
   //   while (true) {
   //   }
