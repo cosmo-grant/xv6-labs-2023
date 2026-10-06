@@ -55,28 +55,26 @@ char **split(char *line) {
   return words;
 }
 
-// void exec_line(char *prefix, char *rest) {
-//   **char argv;
-//   if (fork() == 0) {
-//     argv = split_line(line) exec()
-//   }
-// }
-
-void readline(int fd, char *line) {
+int readline(int fd, char *line) {
   int count = 0;
   int num_read;
+  int ret;
 
   while (1) {
     num_read = read(fd, line + count, 1);
     if (num_read == 0) {
+      ret = 0;
       break;
     }
     if (line[count] == '\n') {
       line[count] = '\0';
+      ret = 1;
       break;
     }
     count++;
   }
+
+  return ret; // number of lines read, maybe 0
 }
 int main(int argc, char *argv[]) {
   char **suffix;
@@ -84,23 +82,28 @@ int main(int argc, char *argv[]) {
   char *command[200];
   int i, j;
 
-  readline(0, input_line);
-  suffix = split(input_line);
+  while (readline(0, input_line) == 1) {
+    // We read a line.
+    // Split on whitespace into words.
+    suffix = split(input_line);
 
-  // Build up complete command.
-  for (i = 1; i < argc; i++) {
-    command[i-1] = argv[i];
-  }
-
-  for (j = 0;; j++) {
-    if (suffix[j] == 0) {
-      break;
+    // Build up complete command, by concatenating argv[1:] and suffix.
+    for (i = 1; i < argc; i++) {
+      command[i - 1] = argv[i];
     }
-    command[i - 1 + j] = suffix[j];
-  }
 
-  exec("echo", command);
-  // printf("%s\n", command[0]);
-  // printf("%s\n", command[1]);
-  // printf("%s\n", command[2]);
+    for (j = 0;; j++) {
+      if (suffix[j] == 0) {
+        break;
+      }
+      command[i - 1 + j] = suffix[j];
+    }
+
+    // Fork, exec, wait.
+    if (fork() == 0) {
+      exec("echo", command);
+    } else {
+      wait(0);
+    }
+  }
 }
