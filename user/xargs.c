@@ -33,7 +33,8 @@ char **split(char *line) {
   // TODO: what about trailing newline?
   int line_idx, words_idx;
   char *word_start;
-  char **words = malloc(MAXARG * sizeof(char *));
+  char **words = malloc(
+      MAXARG * sizeof(char *)); // TODO: should be MAXARG - length of argv?
 
   words_idx = 0;
   word_start = line;
@@ -46,6 +47,7 @@ char **split(char *line) {
       words_idx++;
     }
     if (*(line + line_idx) == '\0') {
+      words[words_idx] = 0;
       break;
     }
   }
@@ -75,29 +77,30 @@ void readline(int fd, char *line) {
     }
     count++;
   }
-
 }
 int main(int argc, char *argv[]) {
-  char **words;
+  char **suffix;
   char input_line[100]; // TODO: what should max size be?
-  // char prefix = argv[1];
-  // char input_line[] = "foo bar\n";
-  
-  readline(0, input_line);
-  words = split(input_line);
-  printf("%s\n", words[0]);
+  char *command[200];
+  int i, j;
 
-  //   while (true) {
-  //   }
-  //   // argv is e.g. ["xargs", "echo", "bye"]
-  //   // loop:
-  //   //   get line from stdin
-  //   //   exec line
-  //   //
-  //   //   exec_line(argv but with xargs popped, line)
-  //   //
-  //   // given an array, make an array with first item popped
-  //   // f(&a[1])
-  //   //
-  //   // exec_line(&argv[1], line);
+  readline(0, input_line);
+  suffix = split(input_line);
+
+  // Build up complete command.
+  for (i = 1; i < argc; i++) {
+    command[i-1] = argv[i];
+  }
+
+  for (j = 0;; j++) {
+    if (suffix[j] == 0) {
+      break;
+    }
+    command[i - 1 + j] = suffix[j];
+  }
+
+  exec("echo", command);
+  // printf("%s\n", command[0]);
+  // printf("%s\n", command[1]);
+  // printf("%s\n", command[2]);
 }
