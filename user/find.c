@@ -41,7 +41,7 @@ void find(char *path, char *target) {
     case T_FILE:
       // printf("is file: %s\n", de.name);
       if (strcmp(de.name, target) == 0) {
-        printf("matching file: %s\n", buf);
+        printf("%s\n", buf);
       }
       break;
 
