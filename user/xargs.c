@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
 
     // Fork, exec, wait.
     if (fork() == 0) {
-      exec("echo", command);
+      exec(command[0], command);
     } else {
       wait(0);
     }
