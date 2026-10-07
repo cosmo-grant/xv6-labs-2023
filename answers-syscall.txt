@@ -1,0 +1,57 @@
+# Problem 1: gdb
+
+## 1
+
+usertrap at kernel/trap.c:67
+
+## 2
+
+p /x p->trapframe->a7 outputs $2 = 0x7
+"initcode.S (user/initcode.S:3) loads the number for the exec system call, SYS_EXEC (kernel/syscall.h:8), into register a7"
+so a7 stores 7
+syscall.h says 7 is the SYS_exec system call
+
+## 3
+
+p /x $sstatus gives 0x200000022
+so 32 bits
+0010 0000 0000 0000 0000 0000 0000 0010 0010
+manual says spp bit is bit 8 (count from low bits, starting at 0)
+so 0 in this case
+so trap originated from user mode
+"The SPP bit indicates the privilege level at which a hart was executing before entering supervisor mode. When a trap is taken, SPP is set to 0 if the trap originated from user mode, or 1 otherwise."
+
+## 4
+
+    800020b6:	00002683          	lw	a3,0(zero) # 0 <_entry-0x80000000>
+i think lw is the instruction
+risc manual confirms this is "load word"
+reference https://en.wikipedia.org/wiki/RISC-V_instruction_listings
+wikipedia says the format is: rd, imm12(rs)
+https://sourceware.org/binutils/docs/as/RISC_002dV_002dFormats.html explains some abbreviations:
+  rd = destination register number for operand x, can be GPR or FPR
+  imm12 is not defined, but simm12 = sign-extended 12-bit immediate for operand x
+  rs is not defined, but rs1 = first source register number for operand x, can be GPR or GPR
+so rd, here a3, is destination register
+?imm12, here 0, is some operation on the operand
+rs, here zero, is source register number for the operand 
+tldr: a3 corresponds to num.
+
+## 5
+
+gdb confirms faulting assembly instruction is lw
+
+address 0 is not mapped in kernel address space
+so we're dereferencing a pointer to an unmapped address
+
+scause 0x000000000000000d
+p71 says "load page fault"
+"When a trap is taken into S-mode, scause is written with a code indicating the event that caused the trap."
+
+## 6
+
+binary name: initcode (plus a bunch of nulls?)
+pid 1
+
+
+
