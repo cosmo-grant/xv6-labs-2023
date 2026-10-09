@@ -7,6 +7,12 @@
 #include "proc.h"
 
 uint64
+sys_trace(void)
+{
+  return 0; // TODO:
+}
+
+uint64
 sys_exit(void)
 {
   int n;
