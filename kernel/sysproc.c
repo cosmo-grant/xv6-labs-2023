@@ -9,8 +9,7 @@
 uint64
 sys_trace(void)
 {
-  TRACE.pid = myproc()->pid;
-  argint(0, &TRACE.syscalls);
+  argint(0, &myproc()->tracemask);
   return 0;
 }
 

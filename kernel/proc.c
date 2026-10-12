@@ -296,6 +296,9 @@ fork(void)
   }
   np->sz = p->sz;
 
+  // Copy trace bitmasks from parent to child.
+  np->tracemask = p->tracemask;
+
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
 

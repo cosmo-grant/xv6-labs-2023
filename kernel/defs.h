@@ -140,11 +140,6 @@ void            argaddr(int, uint64 *);
 int             fetchstr(uint64, char*, int);
 int             fetchaddr(uint64, uint64*);
 void            syscall();
-struct trace {
-  int pid;      // trace this process and its descendants
-  int syscalls; // bitmask of which syscalls to trace
-};
-
 
 // trap.c
 extern uint     ticks;
@@ -189,9 +184,6 @@ void            plic_complete(int);
 void            virtio_disk_init(void);
 void            virtio_disk_rw(struct buf *, int);
 void            virtio_disk_intr(void);
-
-// sysproc.c
-extern struct trace TRACE;
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
