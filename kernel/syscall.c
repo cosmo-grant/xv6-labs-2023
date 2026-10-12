@@ -7,6 +7,13 @@
 #include "syscall.h"
 #include "defs.h"
 
+struct trace TRACE = {0, 0};
+
+int
+should_trace_syscall(int num) {
+  return ((TRACE.syscalls & (1 << num)) > 1);  // flag if bit at index num is set
+}
+
 // Fetch the uint64 at addr from the current process.
 int
 fetchaddr(uint64 addr, uint64 *ip)
@@ -141,6 +148,9 @@ syscall(void)
     // Use num to lookup the system call function for num, call it,
     // and store its return value in p->trapframe->a0
     p->trapframe->a0 = syscalls[num]();
+    if (TRACE.pid == p->pid && should_trace_syscall(num)) {  // TODO: check if p->pid is equal to or a descendant of TRACE.pid
+      printf("%d: syscall %d -> %d\n", p->pid, num, p->trapframe->a0);
+    }
   } else {
     printf("%d %s: unknown sys call %d\n",
             p->pid, p->name, num);

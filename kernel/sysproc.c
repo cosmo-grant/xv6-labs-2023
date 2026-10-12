@@ -9,7 +9,9 @@
 uint64
 sys_trace(void)
 {
-  return 0; // TODO:
+  TRACE.pid = myproc()->pid;
+  argint(0, &TRACE.syscalls);
+  return 0;
 }
 
 uint64
@@ -36,7 +38,7 @@ sys_fork(void)
 uint64
 sys_wait(void)
 {
-  uint64 p;
+uint64 p;
   argaddr(0, &p);
   return wait(p);
 }
