@@ -5,6 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "sysinfo.h"
 
 uint64
 sys_trace(void)
@@ -102,5 +103,15 @@ sys_uptime(void)
 uint64
 sys_sysinfo(void)
 {
+  struct proc *p = myproc();
+  uint64 addr; // user pointer to struct sysinfo
+  struct sysinfo sinf;
+
+  argaddr(0, &addr);
+  sinf.freemem = freemem();
+  sinf.nproc = proccount();
+
+  if(copyout(p->pagetable, addr, (char *)&sinf, sizeof(sinf)) < 0)
+    return -1;
   return 0;
 }
