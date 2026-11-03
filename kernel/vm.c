@@ -481,7 +481,47 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
 // // Sv39, to avoid having to sign-extend virtual addresses
 // // that have the high bit set.
 // #define MAXVA (1L << (9 + 9 + 9 + 12 - 1))
-void vmprint(pagetable_t pagetable) {
-  printf("%p\n", pagetable);
+//
+//
+// Recursively free page-table pages.
+// All leaf mappings must already have been removed.
+// void
+// freewalk(pagetable_t pagetable)
+// {
+//   // there are 2^9 = 512 PTEs in a page table.
+//   for(int i = 0; i < 512; i++){
+//     pte_t pte = pagetable[i];
+//     if((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0){
+//       // this PTE points to a lower-level page table.
+//       uint64 child = PTE2PA(pte);
+//       freewalk((pagetable_t)child);
+//       pagetable[i] = 0;
+//     } else if(pte & PTE_V){
+//       panic("freewalk: leaf");
+//     }
+//   }
+//   kfree((void*)pagetable);
+// }
+
+void vmprint_helper(pagetable_t pagetable, unsigned int depth) {
+  for (int i = 0; i < 512; i++) {
+    pte_t pte = pagetable[i];
+    if ((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0) {
+      // this PTE points to a lower-level page table.
+      uint64 child = PTE2PA(pte);
+      vmprint_helper((pagetable_t)child, depth + 1);
+    } else if (pte & PTE_V) {
+      // valid leaf page table
+      uint64 pa = PTE2PA(pte);
+
+      printf("..");
+      for (int j = 1; j <= depth; j++) printf(" ..");
+      printf("%d: pte %p pa %p\n", i, pte, pa);
+    }
+  }
 }
 
+void vmprint(pagetable_t pagetable) {
+  printf("page table %p\n", pagetable);
+  vmprint_helper(pagetable, 0);
+}
