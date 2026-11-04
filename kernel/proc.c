@@ -132,6 +132,14 @@ found:
     return 0;
   }
 
+  // Allocate a usyscall page.
+  if((p->usyscall = (struct usyscall *)kalloc()) == 0){
+    freeproc(p);
+    release(&p->lock);
+    return 0;
+  }
+  p->usyscall->pid = p->pid;
+
   // An empty user page table.
   p->pagetable = proc_pagetable(p);
   if(p->pagetable == 0){
@@ -139,19 +147,6 @@ found:
     release(&p->lock);
     return 0;
   }
-
-  void * mem = kalloc();
-  if (mappages(p->pagetable, USYSCALL, PGSIZE, (uint64) mem, PTE_R | PTE_U) < 0) {
-    uvmunmap(p->pagetable, TRAMPOLINE, 1, 0);
-    uvmunmap(p->pagetable, TRAPFRAME, 1, 0);
-    uvmfree(p->pagetable, 0);
-    return 0;
-  }
-
-  // Copy the usyscall struct to user space, in the USYCALL page.
-  struct usyscall u;
-  u.pid = p->pid;
-  memmove(mem, (char *)&u, sizeof(u));
 
   // Set up new context to start executing at forkret,
   // which returns to user space.
@@ -171,6 +166,9 @@ freeproc(struct proc *p)
   if(p->trapframe)
     kfree((void*)p->trapframe);
   p->trapframe = 0;
+  if(p->usyscall)
+    kfree((void*)p->usyscall);
+  p->usyscall = 0;
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
   p->pagetable = 0;
@@ -185,7 +183,7 @@ freeproc(struct proc *p)
 }
 
 // Create a user page table for a given process, with no user memory,
-// but with trampoline and trapframe pages.
+// but with trampoline, trapframe, and usyscall pages.
 pagetable_t
 proc_pagetable(struct proc *p)
 {
@@ -210,6 +208,15 @@ proc_pagetable(struct proc *p)
   // trampoline.S.
   if(mappages(pagetable, TRAPFRAME, PGSIZE,
               (uint64)(p->trapframe), PTE_R | PTE_W) < 0){
+    uvmunmap(pagetable, TRAMPOLINE, 1, 0);
+    uvmfree(pagetable, 0);
+    return 0;
+  }
+
+  // map the usyscall page just below the trapframe page.
+  if(mappages(pagetable, USYSCALL, PGSIZE,
+              (uint64)(p->usyscall), PTE_R | PTE_U) < 0){
+    uvmunmap(pagetable, TRAPFRAME, 1, 0);
     uvmunmap(pagetable, TRAMPOLINE, 1, 0);
     uvmfree(pagetable, 0);
     return 0;
