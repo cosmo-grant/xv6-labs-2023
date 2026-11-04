@@ -470,3 +470,8 @@ void vmprint(pagetable_t pagetable) {
   printf("page table %p\n", pagetable);
   vmprint_helper(pagetable, 0);
 }
+
+int pgaccess(uint64 va, int num_pages, uint64 abits_ptr) {
+  printf("here\n");
+  return 0;
+}
