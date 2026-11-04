@@ -707,3 +707,15 @@ procdump(void)
     printf("\n");
   }
 }
+
+int pgaccess(uint64 va, int num_pages, uint64 abits_ptr) {
+  unsigned int mask;  // max pages we can check is 32
+  mask = ((1 << 1) | (1 << 2) | (1 << 30));
+  struct proc *p = myproc();
+  if (copyout(p->pagetable, abits_ptr, (char *)&mask, sizeof mask) < 0) {
+    printf("uh oh\n");
+    return -1;
+  };
+  printf("about to return 0\n");
+  return 0;
+}

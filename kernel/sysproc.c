@@ -78,8 +78,8 @@ sys_pgaccess(void)
   uint64 abits_ptr;
 
   argaddr(0, &va);
-  argint(0, &num_pages);
-  argaddr(0, &abits_ptr);
+  argint(1, &num_pages);
+  argaddr(2, &abits_ptr);
 
   return pgaccess(va, num_pages, abits_ptr);
 }
