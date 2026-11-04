@@ -709,13 +709,22 @@ procdump(void)
 }
 
 int pgaccess(uint64 va, int num_pages, uint64 abits_ptr) {
+  uint64 addr;
+  pte_t *pte;
   unsigned int mask;  // max pages we can check is 32
-  mask = ((1 << 1) | (1 << 2) | (1 << 30));
+
   struct proc *p = myproc();
+
+  for (int i=0;i<num_pages;i++) {
+    addr = va + PGSIZE * i;
+    pte = walk(p->pagetable, addr, 0);
+    mask |= (((PTE_A & *pte) >> 6) << i);
+    // clear access bit of pte
+    *pte &= 0b11111111111111111111111110111111;
+  }
+
   if (copyout(p->pagetable, abits_ptr, (char *)&mask, sizeof mask) < 0) {
-    printf("uh oh\n");
     return -1;
   };
-  printf("about to return 0\n");
   return 0;
 }
