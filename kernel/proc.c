@@ -720,7 +720,7 @@ int pgaccess(uint64 va, int num_pages, uint64 abits_ptr) {
     pte = walk(p->pagetable, addr, 0);
     mask |= (((PTE_A & *pte) >> 6) << i);
     // clear access bit of pte
-    *pte &= 0b11111111111111111111111110111111;
+    *pte &= ~PTE_A;
   }
 
   if (copyout(p->pagetable, abits_ptr, (char *)&mask, sizeof mask) < 0) {
