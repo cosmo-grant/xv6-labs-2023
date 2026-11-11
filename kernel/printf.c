@@ -66,14 +66,13 @@ backtrace(void)
   printf("backtrace:\n");
   // Return address is 8 below frame pointer.
   uint64 *fp = (uint64 *)r_fp();
-  uint64 page = PGROUNDDOWN(fp);
-  while (1)  {
-    printf("%p\n", *(fp + 1));
-    fp = *(fp + 2);
-    // Each kernel stack lives on a single page-aligned page.
-    // So all stack frames for a given stack are on the same page.
-    // TODO: where does the original fp, at the top of the stack, point? is it null? could it point to junk on the same page?
-    if (PGROUNDDOWN(fp) != page) break;
+  uint64 page = PGROUNDDOWN((uint64)fp);
+  // Each kernel stack lives on a single page-aligned page.
+  // So all stack frames for a given stack are on the same page.
+  // TODO: where does the original fp, at the top of the stack, point? is it null? could it point to junk on the same page?
+  while (PGROUNDDOWN((uint64)fp) == page)  {
+    printf("%p\n", *(fp - 1));
+    fp = (uint64 *)*(fp - 2);
   }
 }
 
