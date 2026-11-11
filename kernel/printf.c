@@ -59,6 +59,24 @@ printptr(uint64 x)
     consputc(digits[x >> (sizeof(uint64) * 8 - 4)]);
 }
 
+// Use the frame pointers to walk up the stack and print the saved return address in each stack frame.
+void
+backtrace(void)
+{
+  printf("backtrace:\n");
+  // Return address is 8 below frame pointer.
+  uint64 *fp = (uint64 *)r_fp();
+  uint64 page = PGROUNDDOWN(fp);
+  while (1)  {
+    printf("%p\n", *(fp + 1));
+    fp = *(fp + 2);
+    // Each kernel stack lives on a single page-aligned page.
+    // So all stack frames for a given stack are on the same page.
+    // TODO: where does the original fp, at the top of the stack, point? is it null? could it point to junk on the same page?
+    if (PGROUNDDOWN(fp) != page) break;
+  }
+}
+
 // Print to the console. only understands %d, %x, %p, %s.
 void
 printf(char *fmt, ...)
