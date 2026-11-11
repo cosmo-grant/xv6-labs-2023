@@ -686,3 +686,7 @@ procdump(void)
     printf("\n");
   }
 }
+
+int
+sigalarm(int ticks, void (*handler)())
+{ return 0; }
