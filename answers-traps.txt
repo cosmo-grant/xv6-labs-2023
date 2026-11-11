@@ -1,0 +1,75 @@
+1. Which registers contain arguments to functions?
+
+"a-" registers seem to hold arguments to functions.
+
+```
+  24:	4635                	li	a2,13  # load 13 (i.e. printf's last arg) into a2
+  26:	45b1                	li	a1,12  # load 12 (i.e. f(8) + 1) into a1
+```
+
+2. Where are the calls to f, g?
+
+I think the compiler worked out what `f(8)+1` evaluates to (12) and just hardcoded it.
+So there is no call to f or g in the assembly.
+
+```
+  26:	45b1                	li	a1,12
+```
+
+Also, in f:
+
+```
+  14:	250d                	addiw	a0,a0,3
+```
+
+That looks like g's body inlined into f.
+But f and g are still in the assembly, despite g inlined in f, and f inlined in main.
+
+3. printf address?
+
+0x630
+
+```
+  30:	00000097          	auipc	ra,0x0
+  34:	600080e7          	jalr	1536(ra) # 630 <printf>
+```
+
+auipc ra,0x0 : ra = pc + 0, i.e. store pc (0x30) in ra
+jalr 1536(ra) : jump to ra + 1536 = 0x30 + 1536 = 1584 = 0x630
+
+
+4. What value in ra just after jalr to printf in main?
+
+```
+  34:	600080e7          	jalr	1536(ra) # 630 <printf>
+```
+
+pseudo-instruction for: jalr ra, 1536(ra)
+this could be derived by decoding the instruction word 600080e7
+effect:
+- jump to ra + 1536 (using the old ra 0x30), so jump to 0x630
+- ra <- pc + 4, i.e. write the return address 0x34 + 4 = 0x38 into ra
+
+JALR = jump and link register
+So I guess ra is 1536?
+
+5. What does the snippet print?
+
+```c
+unsigned int i = 0x00646c72;
+printf("H%x Wo%s", 57616, &i);
+```
+
+It prints "He110 World".
+57616 = 0xe110, so He110 makes sense.
+r=114, l=108, d=100, so &i must 114, 108, 100, i.e. 0x72 0x6c 0x64
+So &i points to an array of bytes 0x00646c72.
+Given that, plus little-endian, "World" also makes sense.
+If RISC-V were big-endian, you'd set i to 0x726c6400.
+You wouldn't need to change 57616, because the %x format would print the number 57616 the same way, high digits first, regardless of how the hardware happens to represent that number (big-endian, little-endian, tally marks, whatever).
+
+6. What's printed after `y=`?
+
+Garbage: whatever is in a2.
+I've run it a few times, and it's a big negative number, different each time.
+(RISC-V passes some arguments via registers, not the stack.)
