@@ -140,6 +140,7 @@ found:
     return 0;
   }
 
+  p->alarm_countdown = -1;  // Negative means no handler.
   // Set up new context to start executing at forkret,
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));
@@ -688,5 +689,10 @@ procdump(void)
 }
 
 int
-sigalarm(int ticks, uint64 handler)
-{ return 0; }
+sigalarm(int alarm_interval, uint64 alarm_handler){ 
+  struct proc *p = myproc();
+  p->alarm_interval = alarm_interval;
+  p->alarm_countdown = alarm_interval;
+  p->alarm_handler = alarm_handler;
+  return 0;
+}

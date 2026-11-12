@@ -96,13 +96,13 @@ sys_uptime(void)
 uint64
 sys_sigalarm(void)
 {
-  int interval;
-  uint64 handler;
+  int alarm_interval;
+  uint64 alarm_handler;
 
-  argint(0, &interval);
-  argaddr(1, &handler);
+  argint(0, &alarm_interval);
+  argaddr(1, &alarm_handler);
 
-  return sigalarm(ticks, handler);
+  return sigalarm(alarm_interval, alarm_handler);
 }
 
 uint64
