@@ -140,7 +140,7 @@ found:
     return 0;
   }
 
-  p->alarm_countdown = -1;  // Negative means no handler.
+  p->alarm_interval = -1;  // Negative means there is no handler.
   // Set up new context to start executing at forkret,
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));

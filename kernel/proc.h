@@ -104,7 +104,7 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  int alarm_interval;          // Alarm interval, in ticks
-  int alarm_countdown;         // Countdown to calling the alarm handler. Negative means there is no handler.
+  int alarm_interval;          // Alarm interval, in ticks. Negative means there is no handler.
+  int alarm_countdown;         // Countdown to calling the alarm handler.
   uint64 alarm_handler;        // Pointer to alarm handler.  TODO: should this be void (*handler)()?
 };

@@ -67,17 +67,17 @@ usertrap(void)
     syscall();
   } else if((which_dev = devintr()) == 1){
     // device interrupt, ok
-  } else if(which_dev == 2){
-    // timer interrupt
-    if(p->alarm_countdown == 0){
+  } else if(which_dev == 2 && p->alarm_interval < 0){
+    // timer interrupt, no alarm
+  } else if(which_dev == 2 && p->alarm_countdown == 0){
+      // timer interrupt, panic
       panic("tick, but countdown was already at 0");
-    }
-    if(p->alarm_countdown > 0){
+  } else if(which_dev == 2 && p->alarm_countdown > 0){
+      // timer interrupt, decrement countdown and maybe alarm
       p->alarm_countdown--;
-    }
-    if(p->alarm_countdown == 0){
-      p->alarm_countdown = p->alarm_interval; // reset countdown
-      p->trapframe->epc = p->alarm_handler; // return in user space at handler
+      if(p->alarm_countdown == 0){
+        p->alarm_countdown = p->alarm_interval; // reset countdown
+        p->trapframe->epc = p->alarm_handler; // return in user space at handler
     }
   } else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
