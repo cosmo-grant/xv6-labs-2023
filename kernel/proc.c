@@ -688,5 +688,5 @@ procdump(void)
 }
 
 int
-sigalarm(int ticks, void (*handler)())
+sigalarm(int ticks, uint64 handler)
 { return 0; }
