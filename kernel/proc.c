@@ -691,8 +691,60 @@ procdump(void)
 int
 sigalarm(int alarm_interval, uint64 alarm_handler){ 
   struct proc *p = myproc();
-  p->alarm_interval = alarm_interval;
-  p->alarm_countdown = alarm_interval;
-  p->alarm_handler = alarm_handler;
+  if(alarm_interval == 0 && alarm_handler == 0){
+    // turn off alarm
+    p->alarm_interval = -1;
+  } else {
+    p->alarm_interval = alarm_interval;
+    p->alarm_countdown = alarm_interval;
+    p->alarm_handler = alarm_handler;
+  }
   return 0;
+}
+
+int
+sigreturn(void){
+  // Alarm handlers are required to call the sigreturn system call at end.
+  struct proc *p = myproc();
+  p->alarm_countdown = p->alarm_interval; // reset countdown
+  p->trapframe->epc = p->apc;  // user program should resume where it left off before alarm handler
+
+  // Restore user registers from just before the alarm handler to trapframe.
+  // userret will put them in the registers themselves.
+  p->trapframe->ra = p->ra;
+  p->trapframe->sp = p->sp;
+  p->trapframe->gp = p->gp;
+  p->trapframe->tp = p->tp;
+  p->trapframe->t0 = p->t0;
+  p->trapframe->t1 = p->t1;
+  p->trapframe->t2 = p->t2;
+  p->trapframe->s0 = p->s0;
+  p->trapframe->s1 = p->s1;
+  p->trapframe->a0 = p->a0;
+  p->trapframe->a1 = p->a1;
+  p->trapframe->a2 = p->a2;
+  p->trapframe->a3 = p->a3;
+  p->trapframe->a4 = p->a4;
+  p->trapframe->a5 = p->a5;
+  p->trapframe->a6 = p->a6;
+  p->trapframe->a7 = p->a7;
+  p->trapframe->s2 = p->s2;
+  p->trapframe->s3 = p->s3;
+  p->trapframe->s4 = p->s4;
+  p->trapframe->s5 = p->s5;
+  p->trapframe->s6 = p->s6;
+  p->trapframe->s7 = p->s7;
+  p->trapframe->s8 = p->s8;
+  p->trapframe->s9 = p->s9;
+  p->trapframe->s10 = p->s10;
+  p->trapframe->s11 = p->s11;
+  p->trapframe->t3 = p->t3;
+  p->trapframe->t4 = p->t4;
+  p->trapframe->t5 = p->t5;
+  p->trapframe->t6 = p->t6;
+
+  // userret puts the system call's return value in a0.
+  // But we need to restore it to what it was before the alarm handler.
+  // Solution: return it!
+  return p->trapframe->a0;
 }
